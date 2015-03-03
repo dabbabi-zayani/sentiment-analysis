@@ -20,7 +20,7 @@ def extract_data(file_name):
     MyValues = [] #create an empty list
     rows = csv.reader(open(file_name, 'rb'), delimiter=',')
     for row in rows:
-        line = re.sub('([!,".?%-&\)\(\/\\,:;-]|@\w+|#\w+|http\S+|[0-9])', '', row[5])
+        line = re.sub('([!,".?%-&\)\(\/\\,:;-]|@\w+|#\w+|http\S+|[0-9])', '', row[1])
         t = TextBlob(line)
         if row[0] == '0':
             MyValues.append((t.correct(),'negative'))
@@ -294,9 +294,9 @@ def _get_sentiment():
         print 'neutral'
 
 train_data = extract_data('trainset.csv')
-#trainNBClassifier(train_data)
+trainNBClassifier(train_data)
 
 test_data = extract_data('testset.csv')
-#testNBClassifier(test_data)
+testNBClassifier(test_data)
 
 _get_sentiment()
