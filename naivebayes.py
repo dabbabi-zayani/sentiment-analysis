@@ -5,6 +5,8 @@ from collections import Counter
 import csv
 import re
 import cPickle as pickle
+import math
+import string
 
 from nltk import probability
 from textblob import TextBlob
@@ -24,7 +26,6 @@ def negate_sequence(text):
         result.append(negated)
         if any(neg in word for neg in ["not", "n't", "no"]):
             negation = not negation
-
         if any(c in word for c in delimiters):
             negation = False
     refined_text = " ".join(result)
@@ -42,18 +43,14 @@ def extract_data(file_name):
     rows = csv.reader(open(file_name, 'rb'), delimiter=b',')
     for row in rows:
         txt = negate_sequence(row[1])
-        #line = re.sub('(@\w+|#\w+|http\S+|[0-9])', '', txt)
+        #line = re.sub('[%"-&\\\/]|(@\w+|#\w+|http\S+|[0-9])', '', txt)
         line = re.sub('(['+string.punctuation.replace("'","")+']|@\w+|#\w+|http\S+|[0-9])','',row[1])
-        #t = TextBlob(line)
         if row[0] == '0':
             MyValues.append((line,'negative'))
-            #print t.correct(),"\n"
         elif row[0] == '2':
             MyValues.append((line,'neutral'))
-            #print t.correct(),"\n"
         else:
             MyValues.append((line,'positive'))
-            #print t.correct(),"\n"
     return MyValues
 
 def filterTweets(trData):
@@ -177,23 +174,23 @@ def predict_label_aux(classifier,tweet,class_probabilities,words_stats):
 
     for t in text:
         if t in pos_dict:
-            pos_prob += pos_dict[t]
+            pos_prob += math.log(pos_dict[t])
         else:
-            pos_prob += 1/float((pos_total_words + total_unique_words))
+            pos_prob += math.log(1/float((pos_total_words + total_unique_words)))
 
         if t in neg_dict:
-            neg_prob += neg_dict[t]
+            neg_prob += math.log(neg_dict[t])
         else:
-            neg_prob += 1/float((neg_total_words + total_unique_words))
+            neg_prob += math.log(1/float((neg_total_words + total_unique_words)))
 
         if t in neu_dict:
-            neu_prob += neu_dict[t]
+            neu_prob += math.log(neu_dict[t])
         else:
-            neu_prob += 1/float((neg_total_words + total_unique_words))
+            neu_prob += math.log(1/float((neg_total_words + total_unique_words)))
 
-    pos_prob *= class_probabilities['class_positive_prob']
-    neg_prob *= class_probabilities['class_negative_prob']
-    neu_prob *= class_probabilities['class_neutral_prob']
+    pos_prob += math.log(class_probabilities['class_positive_prob'])
+    neg_prob += math.log(class_probabilities['class_negative_prob'])
+    neu_prob += math.log(class_probabilities['class_neutral_prob'])
 
     max_prob = max(pos_prob,neg_prob,neu_prob)
 
@@ -259,23 +256,23 @@ def _get_sentiment():
 
     for t in text:
         if t in pos_dict:
-            pos_prob += pos_dict[t]
+            pos_prob += math.log(pos_dict[t])
         else:
-            pos_prob += 1/float((pos_total_words + total_unique_words))
+            pos_prob += math.log(1/float((pos_total_words + total_unique_words)))
 
         if t in neg_dict:
-            neg_prob += neg_dict[t]
+            neg_prob += math.log(neg_dict[t])
         else:
-            neg_prob += 1/float((neg_total_words + total_unique_words))
+            neg_prob += math.log(1/float((neg_total_words + total_unique_words)))
 
         if t in neu_dict:
-            neu_prob += neu_dict[t]
+            neu_prob += math.log(neu_dict[t])
         else:
-            neu_prob += 1/float((neg_total_words + total_unique_words))
+            neu_prob += math.log(1/float((neg_total_words + total_unique_words)))
 
-    pos_prob *= prior_probabilities['class_positive_prob']
-    neg_prob *= prior_probabilities['class_negative_prob']
-    neu_prob *= prior_probabilities['class_neutral_prob']
+    pos_prob += math.log(prior_probabilities['class_positive_prob'])
+    neg_prob += math.log(prior_probabilities['class_negative_prob'])
+    neu_prob += math.log(prior_probabilities['class_neutral_prob'])
 
     max_prob = max(pos_prob,neg_prob,neu_prob)
 
