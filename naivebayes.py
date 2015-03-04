@@ -1,13 +1,34 @@
+
 __author__ = 'Sanjeev K C'
 
-from nltk import classify
-from nltk import probability
 from collections import Counter
+import csv
+import re
+import cPickle as pickle
+
+from nltk import probability
 from textblob import TextBlob
 from textblob_aptagger import PerceptronTagger
-import csv,re,cPickle as pickle
 
 accuracy = 0
+
+def negate_sequence(text):
+    negation = False
+    delimiters = "?.,!:;%-&\/"
+    result = []
+    refined_text = ""
+    words = text.split(" ")
+    for word in words:
+        stripped = word.strip(delimiters).lower()
+        negated = "not_" + stripped if negation else stripped
+        result.append(negated)
+        if any(neg in word for neg in ["not", "n't", "no"]):
+            negation = not negation
+
+        if any(c in word for c in delimiters):
+            negation = False
+    refined_text = " ".join(result)
+    return refined_text
 
 def strip_nouns(text):
     blob = TextBlob(text, pos_tagger=PerceptronTagger())
@@ -18,23 +39,22 @@ def strip_nouns(text):
 
 def extract_data(file_name):
     MyValues = [] #create an empty list
-    rows = csv.reader(open(file_name, 'rb'), delimiter=',')
+    rows = csv.reader(open(file_name, 'rb'), delimiter=b',')
     for row in rows:
-        line = re.sub('([!,".?%-&\)\(\/\\,:;-]|@\w+|#\w+|http\S+|[0-9])', '', row[1])
-        t = TextBlob(line)
+        txt = negate_sequence(row[1])
+        line = re.sub('(@\w+|#\w+|http\S+|[0-9])', '', txt)
+        #line = re.sub('(['+string.punctuation.replace("'","")+']|@\w+|#\w+|http\S+|[0-9])','',row[1])
+        #t = TextBlob(line)
         if row[0] == '0':
-            MyValues.append((t.correct(),'negative'))
+            MyValues.append((line,'negative'))
             #print t.correct(),"\n"
         elif row[0] == '2':
-            MyValues.append((t.correct(),'neutral'))
+            MyValues.append((line,'neutral'))
             #print t.correct(),"\n"
         else:
-            MyValues.append((t.correct(),'positive'))
+            MyValues.append((line,'positive'))
             #print t.correct(),"\n"
     return MyValues
-
-#updates tweets[] by filtering pos and neg tweets together passing
-#through stopwords.txt
 
 def filterTweets(trData):
     trainData = []
@@ -100,9 +120,6 @@ def posterior_prob(g_features):
     neg_sets={}
     neu_sets={}
 
-    #global _feature_vector,_trained_Data
-    #repeated values included
-
     for each_feature,label in g_features:
         #print each_feature,label
         if label == 'positive':
@@ -111,21 +128,20 @@ def posterior_prob(g_features):
             neg_total_words += sum(each_feature.values())
         else:
             neutral_total_words += sum(each_feature.values())
+
     total_unique_words = len(g_features)
     #print pos_total_words,neg_total_words,neutral_total_words,total_unique_words
 
     for each_feature,label in g_features:
-        #for key,value in each_feature.iteritems():
-        #print each_feature,label
-        if label == 'positive':
+       if label == 'positive':
             pos_sets[[key for key,value in each_feature.iteritems()][0]] =\
                 float(sum(each_feature.values())+1)/\
                 (pos_total_words + total_unique_words)
-        elif label == 'negative':
+       elif label == 'negative':
             neg_sets[[key for key,value in each_feature.iteritems()][0]] =\
                 float(sum(each_feature.values())+1)/\
                 (neg_total_words + total_unique_words)
-        elif label == 'neutral':
+       elif label == 'neutral':
             neu_sets[[key for key,value in each_feature.iteritems()][0]] =\
                 float(sum(each_feature.values())+1)/\
                 (neutral_total_words + total_unique_words)
@@ -162,29 +178,18 @@ def predict_label_aux(classifier,tweet,class_probabilities,words_stats):
     for t in text:
         if t in pos_dict:
             pos_prob += pos_dict[t]
-            #pos_dict[t] = pos_prob
         else:
             pos_prob += 1/float((pos_total_words + total_unique_words))
-            #pos_dict[t] = 1/float((pos_total_words + total_unique_words))
-            #pos_total_words += 1
 
         if t in neg_dict:
             neg_prob += neg_dict[t]
-            #neg_dict[t] = neg_prob
         else:
             neg_prob += 1/float((neg_total_words + total_unique_words))
-            #neg_dict[t] = 1/float((neg_total_words + total_unique_words))
-            #neg_total_words += 1
 
         if t in neu_dict:
             neu_prob += neu_dict[t]
-            #neu_dict[t] = neu_prob
         else:
             neu_prob += 1/float((neg_total_words + total_unique_words))
-            #neu_dict[t] = 1/float((neutral_total_words + total_unique_words))
-            #neutral_total_words += 1
-
-    #total_unique_words = len((set(pos_dict.keys()) & set(neg_dict.keys())) & set(neu_dict.keys()))
 
     pos_prob *= class_probabilities['class_positive_prob']
     neg_prob *= class_probabilities['class_negative_prob']
@@ -239,7 +244,6 @@ def _get_sentiment():
     words_count = extracted_data[1]
     text = filterTweet(input)
     #predict_label(classifier,,prior_probabilities,words_count)
-
     pos_prob = 0
     neg_prob = 0
     neu_prob = 0
@@ -256,29 +260,18 @@ def _get_sentiment():
     for t in text:
         if t in pos_dict:
             pos_prob += pos_dict[t]
-            #pos_dict[t] = pos_prob
         else:
             pos_prob += 1/float((pos_total_words + total_unique_words))
-            #pos_dict[t] = 1/float((pos_total_words + total_unique_words))
-            #pos_total_words += 1
 
         if t in neg_dict:
             neg_prob += neg_dict[t]
-            #neg_dict[t] = neg_prob
         else:
             neg_prob += 1/float((neg_total_words + total_unique_words))
-            #neg_dict[t] = 1/float((neg_total_words + total_unique_words))
-            #neg_total_words += 1
 
         if t in neu_dict:
             neu_prob += neu_dict[t]
-            #neu_dict[t] = neu_prob
         else:
             neu_prob += 1/float((neg_total_words + total_unique_words))
-            #neu_dict[t] = 1/float((neutral_total_words + total_unique_words))
-            #neutral_total_words += 1
-
-    #total_unique_words = len((set(pos_dict.keys()) & set(neg_dict.keys())) & set(neu_dict.keys()))
 
     pos_prob *= prior_probabilities['class_positive_prob']
     neg_prob *= prior_probabilities['class_negative_prob']
@@ -293,7 +286,7 @@ def _get_sentiment():
     else:
         print 'neutral'
 
-train_data = extract_data('trainset.csv')
+train_data = extract_data('trainingset.csv')
 trainNBClassifier(train_data)
 
 test_data = extract_data('testset.csv')
