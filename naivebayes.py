@@ -14,7 +14,7 @@ accuracy = 0
 
 def negate_sequence(text):
     negation = False
-    delimiters = "?.,!:;%-&\/"
+    delimiters = "?.,!:;"
     result = []
     refined_text = ""
     words = text.split(" ")
@@ -42,8 +42,8 @@ def extract_data(file_name):
     rows = csv.reader(open(file_name, 'rb'), delimiter=b',')
     for row in rows:
         txt = negate_sequence(row[1])
-        line = re.sub('(@\w+|#\w+|http\S+|[0-9])', '', txt)
-        #line = re.sub('(['+string.punctuation.replace("'","")+']|@\w+|#\w+|http\S+|[0-9])','',row[1])
+        #line = re.sub('(@\w+|#\w+|http\S+|[0-9])', '', txt)
+        line = re.sub('(['+string.punctuation.replace("'","")+']|@\w+|#\w+|http\S+|[0-9])','',row[1])
         #t = TextBlob(line)
         if row[0] == '0':
             MyValues.append((line,'negative'))
