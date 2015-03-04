@@ -8,7 +8,7 @@ First column has values 0,2,4
   0-Negative  
   2-Neutral  
   4-positive  
-Second column has tweets.  
+Second column has tweets  
 ---------------------------------
   
 Run:  
