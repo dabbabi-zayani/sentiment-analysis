@@ -151,6 +151,7 @@ def trainNBClassifier(trData):
     with open('TRAIN_SETS.PICKLE', 'wb') as classifier_file:
         pickle.dump(posterior_prob(_get_features(tweets)),classifier_file)
         pickle.dump(prior_prob(tweets), classifier_file)
+    print "Classifier written to pickle file in current folder"
 
 def predict_label_aux(classifier,tweet,class_probabilities,words_stats):
 
