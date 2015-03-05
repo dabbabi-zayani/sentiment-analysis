@@ -11,7 +11,7 @@ from nltk import probability
 from textblob import TextBlob
 from textblob_aptagger import PerceptronTagger
 
-#Taken from "https://github.com/vivekn/sentiment/blob/master/info.py" and modified for my purpose
+#negate_sequence taken from "https://github.com/vivekn/sentiment/blob/master/info.py" and modified for my purpose
 #Thank you to vivek
 
 def negate_sequence(text):
