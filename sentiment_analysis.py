@@ -64,7 +64,18 @@ def _get_sentiment():
 
 if __name__=='__main__':
 
-    train_data = extract_data('train.csv')
+    print "Twitter data sets: \n"
+    train_data = extract_data_csv_file('train.csv')
     trainNBClassifier(train_data)
+
+    test_data = extract_data_csv_file('test.csv')
+    testNBClassifier(test_data)
+
+    print "IMDb data sets: \n"
+    train_data = extract_data_txt_file('C:/Users/schittia/Desktop/aclImdb/train')
+    trainNBClassifier(train_data)
+
+    test_data = extract_data_txt_file('C:/Users/schittia/Desktop/aclImdb/test')
+    testNBClassifier(test_data)
 
     _get_sentiment()
