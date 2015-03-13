@@ -2,6 +2,7 @@ __author__ = 'Sanjeev K C'
 
 from TrainingData import *
 import math
+accuracy = 0
 
 def predict_label_aux(classifier,tweet,class_probabilities,words_stats):
 
@@ -60,6 +61,7 @@ def predict_label_aux(classifier,tweet,class_probabilities,words_stats):
 def predict_label(classifier,tweets,class_probabilities,words_stats):
     for tweet in tweets:
         print tweet[0], " is ",predict_label_aux(classifier,tweet,class_probabilities,words_stats)
+        #print TextBlob(tweet[0]).sentiment
 
 def testNBClassifier(testData):
     with open('TRAIN_SETS.PICKLE', 'rb') as classifier_file:
@@ -76,5 +78,10 @@ def testNBClassifier(testData):
 
 if __name__=='__main__':
 
-    test_data = extract_data('testset.csv')
-    testNBClassifier(test_data)
+    # test_data = extract_data_csv_file('test.csv')
+    # testNBClassifier(test_data)
+    #
+    # test_data = extract_data_txt_file('path/to/IMdb/dataset/Desktop/aclImdb/test')
+    # testNBClassifier(test_data)
+
+    print "--TESTING---FINISHED--"
