@@ -4,8 +4,8 @@ from collections import Counter
 import csv
 import re
 import string
+import os
 import cPickle as pickle
-
 
 from nltk import probability
 from textblob import TextBlob
@@ -38,19 +38,50 @@ def strip_nouns(text):
     txt = regex.sub("", text)
     return txt
 
-def extract_data(file_name):
+def extract_data_csv_file(file_name):
     MyValues = [] #create an empty list
     rows = csv.reader(open(file_name, 'rb'), delimiter=b',')
+    expr = '[%\"\-\&\(\)\\\/\$]|#\w+|@\w+|http\S+|[0-9]'
     for row in rows:
-        txt = negate_sequence(row[1])
-        #line = re.sub('[%"-&\\\/]|(@\w+|#\w+|http\S+|[0-9])', '', txt)
-        line = re.sub('(['+string.punctuation.replace("'","")+']|@\w+|#\w+|http\S+|[0-9])','',row[1])
+        line = re.sub(expr,'',row[1])
+        txt = negate_sequence(line.replace("   ",""))
+        #line = re.sub('(['+string.punctuation.replace("'","")+']|@\w+|#\w+|http\S+|[0-9])','',row[1])
         if row[0] == '0':
-            MyValues.append((line,'negative'))
+            MyValues.append((txt,'negative'))
         elif row[0] == '2':
-            MyValues.append((line,'neutral'))
+            MyValues.append((txt,'neutral'))
         else:
-            MyValues.append((line,'positive'))
+            MyValues.append((txt,'positive'))
+    return MyValues
+
+def extract_data_txt_file(file_path):
+    MyValues = [] #create an empty list
+    expr = '[%\"\-\&\(\)\\\/\$]|#\w+|@\w+|http\S+|[0-9]'
+
+    path = file_path + "/pos"
+    for filename in os.listdir(path):
+        full_path = os.path.join(path,filename)
+        file_txt = open(full_path,'r').read()
+        txt = re.sub(expr,'',file_txt)
+        line = negate_sequence(txt.replace("   ",""))
+        MyValues.append((line,'positive'))
+
+    path = file_path + "/neg"
+    for filename in os.listdir(path):
+        full_path = os.path.join(path,filename)
+        file_txt = open(full_path,'r').read()
+        txt = re.sub(expr,'',file_txt)
+        line = negate_sequence(txt.replace("   ",""))
+        MyValues.append((line,'negative'))
+
+    path = file_path + "/neu"
+    for filename in os.listdir(path):
+        full_path = os.path.join(path,filename)
+        file_txt = open(full_path,'r').read()
+        txt = re.sub(expr,'',file_txt)
+        line = negate_sequence(txt.replace("   ",""))
+        MyValues.append((line,'neutral'))
+
     return MyValues
 
 def filterTweets(trData):
@@ -155,7 +186,10 @@ def trainNBClassifier(trData):
 
 if __name__=='__main__':
 
-    # train_data = extract_data('train.csv')
+    # train_data = extract_data_csv_file('train.csv')
+    # trainNBClassifier(train_data)
+    #
+    # train_data = extract_data_txt_file('path/to/IMdb/dataset/Desktop/aclImdb/train')
     # trainNBClassifier(train_data)
 
-    print "--FINISHED--"
+    print "--TRAINING---FINISHED--"
